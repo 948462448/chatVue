@@ -1,0 +1,160 @@
+#body{
+  display: flex;
+  overflow-y: hidden;
+  /* overflow: hidden;  */
+}
+
+/* 隐藏 Webkit 滚动条（Chrome、Safari）*/
+#body::-webkit-scrollbar {
+  display: none;
+}
+
+.record-list {
+  background-color: #efefef;
+  display: flex;
+  flex-direction: column; /* 垂直堆叠盒子 */
+  width: 210px;
+  border-right: 1px solid rgb(219, 215, 215);
+}
+
+.logo {
+  margin-top: 1.5vh;
+  text-align:center;
+  font-family:"华文彩云";/*设置字体*/
+  font-size:35px; /*设置字体大小*/
+  font-weight:bolder; /*设置字体粗细*/
+  -webkit-text-stroke:1px #2a7af2;        /*文字描边*/
+  -webkit-text-fill-color:#2a7af2;    /*设置文字的填充颜色*/
+}
+
+.chat-list {
+  height: 70%;
+  width: 100%;
+}
+
+.platfrom-list {
+  height: 17%;
+  width: 100%;
+  margin-left: 5%;
+  
+}
+
+#dddddd {
+  background-color: #efefef;
+  font-size: 20px;
+  font-weight:bolder;
+  font-family:"华文彩云";
+  border-block-start: 1px solid  rgba(5, 5, 5, 0.06);
+  border-inline-end: 1px solid  #efefef;
+  border-block-end: 1px solid  rgba(5, 5, 5, 0.06);
+}
+
+.beian {
+  height: 8%;
+  width: 100%;
+  display: flex;
+  flex-direction: column; /* 垂直堆叠盒子 */
+  white-space: nowrap; /* 防止文本换行 */
+  overflow: hidden; /* 隐藏溢出部分 */
+  text-overflow: ellipsis; /* 显示省略号 */
+}
+
+a {
+  color: rgb(138, 138, 149);
+  text-decoration: none;
+  justify-content: center; /* 水平居中 */
+  font-size: 14px;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column; /* 垂直堆叠盒子 */
+  justify-content: center; /* 水平居中 */
+  align-items: flex-end; /* 垂直对齐底部 */
+  height: 100vh; /* 视口高度的100% */
+  width: 83%;  /* 视口宽度的80% */
+  margin: 0 auto; /* 使 container 水平居中 */
+  box-sizing: border-box;  /* 包括内边距和边框 */
+}
+
+.message-out {
+  display: flex;
+  flex-direction: column; /* 垂直堆叠盒子 */ 
+  height: 80%;
+  width: 100%;
+  overflow-y: auto;
+  /* 隐藏滚动条 */
+  scrollbar-width: none;  /* 对 Firefox 有效 */
+  -ms-overflow-style: none;  /* 对 Internet Explorer 和 Edge 有效 */
+}
+
+ /* 隐藏 Webkit 滚动条（Chrome、Safari）*/
+ .message-out::-webkit-scrollbar {
+  display: none;
+}
+
+.message-out:hover {
+  /* 鼠标悬停时显示滚动条 */
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message.bot {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.bubble.user {
+  background-color: #007bff;
+  color: white;
+  align-self: flex-start;
+}
+
+.bubble.bot {
+  background-color: #e5e5ea;
+  color: black;
+  align-self: flex-end;
+}
+
+.message-input {
+  position: relative;
+  width: 100%;
+}
+
+.send-button {
+  position: absolute;
+  right: 1.5%; /* 定位到右边 */
+  bottom: 35%; /* 定位到下边 */
+}
+
+.util-button-line {
+  border-top: 1px solid rgb(219, 215, 215);
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.7%;
+  padding-bottom: 0.7%;
+}
+
+.retry {
+  margin-right: 1%;
+}
+
+.divider-line {
+  text-align: center;
+  width: 100%; 
+}
