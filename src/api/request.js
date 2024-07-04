@@ -7,16 +7,12 @@ const Axios = axios.create({
         // 'Content-Type': 'application/x-www-form-urlencoded'
         'Content-Type': 'application/json'
     },
-    /*这个配置很重要，允许axios携带用户Cookie到后端，不设置这个的话
-    Set-Cookie是无效的,除此之外,Chrome默认开启了SameSite检查，如果
-    后端不主动设置SameSite = none,Set-Cookie是无效的。详情请文章末尾
-    参考阮老师的SameSite讲解*/
-    // withCredentials: true
+    withCredentials: true
 });
 
 Axios.interceptors.request.use(req => {
     // 请求拦截处理
-    // console.log('这里是请求拦截器，我拦截了请求', req);
+    console.log('这里是请求拦截器，我拦截了请求', req);
     return req; 
 }, err => {
     console.log('在发送请求时发生错误，错误为', err);
@@ -27,7 +23,7 @@ Axios.interceptors.request.use(req => {
 Axios.interceptors.response.use(res => {
         // 响应拦截处理
         // console.log('响应拦截 ', res);
-        return res.data;
+        return res;
     }, error => {
         const err = error.toString();
 		//按照实际的响应包进行解析，通过关键字匹配的方式

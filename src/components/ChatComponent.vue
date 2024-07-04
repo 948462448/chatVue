@@ -1,6 +1,7 @@
 <template>
     <div id="body">
         <div class="record-list">
+            <div ref="callback"></div>
             <div class="logo">
                 DPD
             </div>
@@ -19,7 +20,7 @@
                     <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener">浙公网安备33011002017141号</a>
                 </div>
                 <div style="text-align:center;">
-                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">黑ICP备2023006322号</a> 
+                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">黑ICP备2023006322号</a>
                 </div>
             </div>
         </div>
@@ -29,6 +30,13 @@
                     :class="['message', message.role === 'user' ? 'user' : message.role === 'system' ? 'system' : 'bot']">
                     <div v-if="message.role === 'system' && message.type === 'line'" class="divider-line">
                         <a-divider>以上为历史对话记录</a-divider>
+                    </div>
+                    <div v-else-if="message.role === 'system' && message.type === 'error'">
+                        <div class="message bot">
+                            <div class="bubble bot">
+                                服务器端响应失败，请重试！
+                            </div>
+                        </div>
                     </div>
                     <div v-else :class="['bubble', message.role === 'user' ? 'user' : 'bot']">
                         <div v-if="message.role === 'user'">
@@ -44,13 +52,6 @@
                     <div class="message bot">
                         <div class="bubble bot">
                             <a-spin />
-                        </div>
-                    </div>
-                </div>
-                <div v-if="isFail">
-                    <div class="message bot">
-                        <div class="bubble bot">
-                            服务器端响应失败，请重试！
                         </div>
                     </div>
                 </div>
@@ -76,8 +77,8 @@
 </template>
 <style src="../assets/chat.css"></style>
 <script setup>
-import { ref, reactive, nextTick, watch, VueElement, h } from 'vue'
-import { chat } from "@/api/api";
+import { ref, reactive, nextTick, watch, inject,onMounted } from 'vue'
+import { chat, getCsrfToken } from "@/api/api";
 
 //输入框文本
 const sendMessageStr = ref("")
@@ -97,6 +98,8 @@ const chatOutDiv = ref(null)
 const selectedKeys = ref(['1']);
 //list
 const openKeys = ref(['sub1']);
+//$cookies
+const $cookies = inject('$cookies');
 
 function getItem(label, key, icon, children, type) {
     return {
@@ -114,37 +117,53 @@ const items = reactive([
 const handleClick = e => {
     console.log('click', e);
 };
+
 watch(openKeys, val => {
     console.log('openKeys', val);
 });
 
+onMounted(() => {
+    if ($cookies.get("csrftoken") == "") {
+        cacheCookie()
+    }
+})
+
+function cacheCookie() {
+    getCsrfToken().then((res) => {
+        let csrftoken = getCookie("csrftoken")
+        $cookies.set("csrftoken", csrftoken)
+        console.log("csrftoken:", $cookies.get("csrftoken"))
+    })
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Is this cookie string starting with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 //发送消息
 function sendMessage() {
+    if ($cookies.get("csrftoken") == "") {
+        cacheCookie()
+    }
     messageList.value.push({ content: sendMessageStr.value, role: "user", type: "chat" })
     currentMessageList.value.push({ content: sendMessageStr.value, role: "user" })
-    nextTick(() => {
-        let scrollElem = chatOutDiv.value;
-        scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
-    });
-    const param = { msg: currentMessageList.value }
-    isLoading.value = true
-    chat(param).then((res) => {
-        isLoading.value = false
-        messageList.value.push({ content: res, role: "assistant", type: "chat" })
-        currentMessageList.value.push({ content: res, role: "assistant" })
-        nextTick(() => {
-            let scrollElem = chatOutDiv.value;
-            scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
-        });
-    }).catch((err) => {
-        isLoading.value = false
-        isFail.value = true
-        console.log(err)
-    });
+    doSend()
     // 处理消息发送逻辑
     sendMessageStr.value = ""; // 发送消息后清空文本框
 }
+
 
 //发送消息
 function reSendMessage() {
@@ -156,22 +175,34 @@ function reSendMessage() {
     }
     console.log("currentMessageList:", currentMessageList.value)
     console.log("messageList:", messageList.value)
+    doSend()
+    // 处理消息发送逻辑
+    sendMessageStr.value = ""; // 发送消息后清空文本框
+}
+
+function doSend() {
+    nextTick(() => {
+        let scrollElem = chatOutDiv.value;
+        scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
+    });
     const param = { msg: currentMessageList.value }
     isLoading.value = true
-    chat(param).then((res) => {
+    let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
+    chat(param, headers).then((res) => {
+        const return_res = res.data
         isLoading.value = false
-        messageList.value.push({ content: res, role: "assistant", type: "chat" })
+        messageList.value.push({ content: return_res, role: "assistant", type: "chat" })
+        currentMessageList.value.push({ content: return_res, role: "assistant" })
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
         });
     }).catch((err) => {
         isLoading.value = false
-        isFail.value = true
+        messageList.value.push({ content: "服务器端响应失败，请重试！", role: "system", type: "error" })
+        currentMessageList.value.push({ content: "服务器端响应失败，请重试！", role: "user" })
         console.log(err)
     });
-    // 处理消息发送逻辑
-    sendMessageStr.value = ""; // 发送消息后清空文本框
 }
 
 //清除记忆

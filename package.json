@@ -15,7 +15,9 @@
     "@kangc/v-md-editor": "^2.3.18",
     "ant-design-vue": "^4.2.3",
     "axios": "^1.7.2",
-    "vue": "^3.4.29"
+    "vue": "^3.4.29",
+    "vue-cookies": "^1.8.4",
+    "vue3-cookies": "^1.0.6"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",

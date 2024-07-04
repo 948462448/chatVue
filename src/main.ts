@@ -6,7 +6,7 @@ import VMdPreview from '@kangc/v-md-editor/lib/preview';
 import '@kangc/v-md-editor/lib/style/preview.css';
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js';
 import '@kangc/v-md-editor/lib/theme/style/github.css';
-import axios from 'axios';
+import VueCookies from 'vue-cookies'
 // highlightjs
 import hljs from 'highlight.js';
 
@@ -18,5 +18,5 @@ VMdPreview.use(githubTheme, {
 
 const app = createApp(App)
 
-app.use(Antd).use(VMdPreview)
+app.use(Antd).use(VMdPreview).use(VueCookies);
 app.mount('#app')
