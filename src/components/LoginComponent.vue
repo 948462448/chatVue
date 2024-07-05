@@ -29,8 +29,7 @@
                 <!-- </a-form-item> -->
 
                 <a-form-item>
-                    <!-- <a-button :disabled="!(formState.username && formState.password)" type="primary" html-type="submit" class="login-form-button"> -->
-                        <a-button :disabled="disabled" type="primary" html-type="submit" class="login-form-button">
+                    <a-button :disabled="!(formState.username && formState.password)" type="primary" html-type="submit" class="login-form-button">
                         登录
                     </a-button>
                     Or
@@ -52,9 +51,9 @@ const formState = ref({
     username: '',
     password: ''
 });
-const disabled = computed(() => !(formState.username && formState.password));
 
 function onFinish(values) {
+    console.log("formState:", formState)
     console.log('Success:', values);
 };
 
