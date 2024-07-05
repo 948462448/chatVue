@@ -12,8 +12,9 @@
                 对话记录列表
             </div>
             <div class="platfrom-list">
-                <a-menu id="dddddd" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" style="width: 90%"
+                <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" style="width: 90%"
                     mode="inline" :items="items" @click="handleClick"></a-menu>
+                <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false"/>
             </div>
             <div class="beian">
                 <div style="text-align:center;">
@@ -79,6 +80,7 @@
 <script setup>
 import { ref, reactive, nextTick, watch, inject,onMounted } from 'vue'
 import { chat, getCsrfToken } from "@/api/api";
+import LoginComponent from './LoginComponent.vue';
 
 //输入框文本
 const sendMessageStr = ref("")
@@ -88,8 +90,6 @@ const messageList = ref([])
 const currentMessageList = ref([])
 //是否在等待应答
 const isLoading = ref(false)
-//是否请求失败
-const isFail = ref(false)
 //是否开启输入法
 const isComposing = ref(false)
 //chatOut的div高度
@@ -100,6 +100,8 @@ const selectedKeys = ref(['1']);
 const openKeys = ref(['sub1']);
 //$cookies
 const $cookies = inject('$cookies');
+
+const showLogin = ref(false)
 
 function getItem(label, key, icon, children, type) {
     return {
@@ -115,7 +117,9 @@ const items = reactive([
     getItem(null, null, null, [getItem('登录', 'login'), getItem('联系我们', 'contact')], 'group'),
 ]);
 const handleClick = e => {
-    console.log('click', e);
+    if(e.key == "login") {
+        showLogin.value = true
+    }
 };
 
 watch(openKeys, val => {
