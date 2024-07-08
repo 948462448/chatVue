@@ -9,12 +9,25 @@
                 <a-divider />
             </div>
             <div class="chat-list">
-                对话记录列表
+                <div style="width: 80%; margin-left: 10%;">
+                    <a-list size="small" item-layout="horizontal" :data-source="chatRecordTitleList">
+                        <template #renderItem="{ item }">
+                            <a-list-item>{{ item }}</a-list-item>
+                        </template>
+                    </a-list>
+                </div>
             </div>
             <div class="platfrom-list">
-                <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" style="width: 90%"
-                    mode="inline" :items="items" @click="handleClick"></a-menu>
-                <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false"/>
+                <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
+                    style="width: 90%" mode="inline" :items="items" @click="handleClick"></a-menu>
+                <div v-if="isLogin">
+                    
+                </div>
+                <div v-else>
+                    <LoginComponent v-if="showLogin" :open="true"
+                        @close="showLogin = false; isLogin = true; doGetChatRecord()" />
+                </div>
+
             </div>
             <div class="beian">
                 <div style="text-align:center;">
@@ -78,8 +91,8 @@
 </template>
 <style src="../assets/chat.css"></style>
 <script setup>
-import { ref, reactive, nextTick, watch, inject,onMounted } from 'vue'
-import { chat, getCsrfToken } from "@/api/api";
+import { ref, reactive, nextTick, watch, inject, onMounted } from 'vue'
+import { chat, getCsrfToken, doGetChatRecordList } from "@/api/api";
 import LoginComponent from './LoginComponent.vue';
 
 //输入框文本
@@ -103,6 +116,32 @@ const $cookies = inject('$cookies');
 
 const showLogin = ref(false)
 
+const chatId = ref(null)
+
+const chatRecordTitleList = ref([])
+
+const chatRecordList = ref([])
+
+onMounted(() => {
+    console.log($cookies)
+  console.log(`the component is now mounted.`)
+})
+
+function doGetChatRecord() {
+    doGetChatRecordList().then((req) => {
+        const returnRes = req.data
+        if (returnRes.code == 200) {
+            let chatRecordListJson = JSON.parse(returnRes.data)
+            chatRecordListJson.forEach(function (item) {
+                chatRecordTitleList.value.push(item.fields.title)
+                chatRecordList.value.push(item)
+            });
+        } else {
+            message.error(req.msg);
+        }
+    })
+}
+
 function getItem(label, key, icon, children, type) {
     return {
         key,
@@ -116,8 +155,9 @@ function getItem(label, key, icon, children, type) {
 const items = reactive([
     getItem(null, null, null, [getItem('登录', 'login'), getItem('联系我们', 'contact')], 'group'),
 ]);
+
 const handleClick = e => {
-    if(e.key == "login") {
+    if (e.key == "login") {
         showLogin.value = true
     }
 };
@@ -136,7 +176,6 @@ function cacheCookie() {
     getCsrfToken().then((res) => {
         let csrftoken = getCookie("csrftoken")
         $cookies.set("csrftoken", csrftoken)
-        console.log("csrftoken:", $cookies.get("csrftoken"))
     })
 }
 
@@ -172,13 +211,10 @@ function sendMessage() {
 //发送消息
 function reSendMessage() {
     const lastChat = messageList.value[messageList.value.length - 1]
-    console.log("lastChat:", lastChat)
     if (lastChat.role !== "user" && lastChat.chat !== "chat") {
         messageList.value.pop()
         currentMessageList.value.pop()
     }
-    console.log("currentMessageList:", currentMessageList.value)
-    console.log("messageList:", messageList.value)
     doSend()
     // 处理消息发送逻辑
     sendMessageStr.value = ""; // 发送消息后清空文本框
@@ -189,14 +225,16 @@ function doSend() {
         let scrollElem = chatOutDiv.value;
         scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
     });
-    const param = { msg: currentMessageList.value }
+    const param = { msg: currentMessageList.value, chatId: chatId.value }
     isLoading.value = true
     let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
     chat(param, headers).then((res) => {
-        const return_res = res.data
+        console.log("send res:", res)
+        const return_res = res.data.data
         isLoading.value = false
-        messageList.value.push({ content: return_res, role: "assistant", type: "chat" })
-        currentMessageList.value.push({ content: return_res, role: "assistant" })
+        messageList.value.push({ content: return_res.message, role: "assistant", type: "chat" })
+        currentMessageList.value.push({ content: return_res.message, role: "assistant" })
+        chatId.value = return_res.id
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });

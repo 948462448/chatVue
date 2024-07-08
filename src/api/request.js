@@ -4,15 +4,12 @@ const Axios = axios.create({
     baseURL: 'http://localhost:8000',
     timeout: 60000,
     headers: { 
-        // 'Content-Type': 'application/x-www-form-urlencoded'
         'Content-Type': 'application/json'
     },
     withCredentials: true
 });
 
 Axios.interceptors.request.use(req => {
-    // 请求拦截处理
-    console.log('这里是请求拦截器，我拦截了请求', req);
     return req; 
 }, err => {
     console.log('在发送请求时发生错误，错误为', err);
@@ -22,7 +19,6 @@ Axios.interceptors.request.use(req => {
 
 Axios.interceptors.response.use(res => {
         // 响应拦截处理
-        // console.log('响应拦截 ', res);
         return res;
     }, error => {
         const err = error.toString();
