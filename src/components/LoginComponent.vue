@@ -1,9 +1,9 @@
 <template>
     <div>
         <a-modal v-model:open="open" title="登录项" @ok="handleOk" :footer="null" @cancel="handleOk">
-            <div v-if="!loginSuccess">
-                <a-form :model="formState" name="normal_login" class="login-form" @finish="onFinish"
-                    @finishFailed="onFinishFailed">
+            <div v-if="$cookies.get('username') == '' || $cookies.get('username') == null ">
+                <a-form :model="formState" name="normal_login" class="login-form" @finish="onLogin"
+                    @finishFailed="onLoginFailed">
                     <a-form-item label="用户名" name="username" :rules="[{ required: true, message: '请输入用户名!' }]">
                         <a-input v-model:value="formState.username">
                             <template #prefix>
@@ -39,26 +39,66 @@
                     </a-form-item>
                 </a-form>
             </div>
+            <div v-else style="">
+                <a-form :model="formState" name="normal_logout" class="logout-form" @finish="onLogout"
+                    @finishFailed="onLogoutFailed">
+                    <a-form-item label="用户名" name="username">
+                        <a-input v-model:value="username">
+                            <template #prefix>
+                                <UserOutlined class="site-form-item-icon" />
+                            </template>
+                        </a-input>
+                    </a-form-item>
+                    <a-form-item>
+                        <a-space>
+                            <a-button :disabled="!($cookies.get('username'))" type="primary"
+                                html-type="submit" class="logout-form-button">
+                                登出
+                            </a-button>
+                        </a-space>
+                    </a-form-item>
+                </a-form>
+            </div>
 
         </a-modal>
     </div>
 </template>
 <script setup>
 
-import { ref } from 'vue';
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
+import { ref, getCurrentInstance } from 'vue';
+import { UserOutlined, LockOutlined} from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { login } from '@/api/api.js'
-const emit = defineEmits([ 'close' ])
+import { login, logout } from '@/api/api.js'
+const emit = defineEmits([ 'close', 'isLogout' ])
 const props = defineProps(['open'])
 const open = ref(props.open);
-const loginSuccess = ref(false);
 const formState = ref({
     username: '',
     password: ''
 });
 
-function onFinish(values) {
+const instance = getCurrentInstance();
+const $cookies = instance.appContext.config.globalProperties.$cookies;
+const username = $cookies.get('username')
+
+function onLogout(values) {
+    let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
+    logout(values, headers).then((req) => {
+        const returnRes = req.data
+        if (returnRes.code == 200) {
+            handleOk()
+            message.success('用户登出成功');
+            $cookies.set("username", "")
+            emit('isLogout', true);
+        }else{
+            message.error('用户登出失败,请联系管理员');
+        }
+    }).catch((err) => {
+
+    })
+}
+
+function onLogin(values) {
     let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
     login(values, headers).then((req) => {
         const returnRes = req.data
@@ -74,7 +114,11 @@ function onFinish(values) {
     })
 };
 
-function onFinishFailed(errorInfo) {
+function onLogoutFailed(errorInfo) {
+    console.log('Failed:', errorInfo);
+}
+
+function onLoginFailed(errorInfo) {
     console.log('Failed:', errorInfo);
 };
 

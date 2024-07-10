@@ -119,6 +119,7 @@ a {
 }
 
 .bubble.user {
+  white-space: pre-wrap; /*保留空格跟换行*/
   background-color: #007bff;
   color: white;
   align-self: flex-start;
@@ -150,6 +151,10 @@ a {
   padding-bottom: 0.7%;
 }
 
+.add-new-chat {
+  margin-right: 1%;
+}
+
 .retry {
   margin-right: 1%;
 }
@@ -157,4 +162,31 @@ a {
 .divider-line {
   text-align: center;
   width: 100%; 
+}
+
+.chat-record-selected {
+  background-color: #e6f4ff; /* 你可以根据需要更改这个颜色 */
+  border-radius: 10px;
+}
+
+.chat-record {
+  overflow: hidden;  
+}
+
+.chat-record-textarea {
+  white-space: nowrap;      /* 禁止换行 */
+  overflow: hidden;         /* 隐藏溢出内容 */
+  text-overflow: ellipsis;  /* 显示省略号 */
+  display: block;           /* 块级元素 */
+  max-width: 100%;          /* 设置最大宽度 */
+}
+
+.chat-record:hover {
+  background-color: #e3e7e9; /* 你可以根据需要更改这个颜色 */
+  border-radius: 10px;
+}
+
+.chat-record-selected:hover {
+  background-color: #e6f4ff; /* 你可以根据需要更改这个颜色 */
+  border-radius: 10px;
 }
