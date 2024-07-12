@@ -165,6 +165,7 @@ function flushChatRecordList(item) {
 async function doGetChatRecord() {
     const isLogin = await checkUserLogin()
     if (isLogin.data.data) {
+        
         doGetChatRecordList().then((req) => {
             const returnRes = req.data
             if (returnRes.code == 200) {
@@ -301,23 +302,27 @@ async function steamDoSend(uuid) {
     /**
      * 处理流式响应返回的消息
      */
-    function streamResponseHandler(streamResopnse) {
-        isLoading.value = false
-        if (streamResopnse.data.finish == false) {
+     async function streamResponseHandler(streamResponse) {
+        isLoading.value = false;
+        if (streamResponse.data.finish == false) {
             let existingMessage = messageList.value.find(msg => msg.id === uuid + "_a");
             if (existingMessage) {
-                existingMessage.content = streamResopnse.data.message;
+                for (let char of streamResponse.data.message) {
+                    existingMessage.content += char;
+                    await new Promise(resolve => setTimeout(resolve, 5)); // 等待50毫秒
+                }
             } else {
-                messageList.value.push({id:uuid + "_a", content: streamResopnse.data.message, role: streamResopnse.data.role, type: "chat" })
-                currentMessageList.value.push({id:uuid + "_a", content: streamResopnse.data.message, role: "assistant" })
+                messageList.value.push({ id: uuid + "_a", content: streamResponse.data.message, role: streamResponse.data.role, type: "chat" });
+                currentMessageList.value.push({ id: uuid + "_a", content: streamResponse.data.message, role: "assistant" });
             }
         }
-        chatId.value = streamResopnse.data.id
+        chatId.value = streamResponse.data.id;
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
         });
     }
+    
     /**
      * 处理流式响应返回错误信息
      */

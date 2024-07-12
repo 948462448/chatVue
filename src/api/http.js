@@ -36,49 +36,45 @@ const http = {
         return request.request(config)
     },
 
-    postWithHeaderAndStream(url, params, onEvent, onError) {
+    async postWithHeaderAndStream(url, params, onEvent, onError) {
+        try {
+            const response = await fetch(import.meta.env.VUE_APP_API_BASE_URL + url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'text/event-stream',
+                    'X-CSRFToken': $cookies.get("csrftoken"),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+                credentials: 'include'
+            });
 
-        // 设定 fetch 请求
-        fetch( import.meta.env.VUE_APP_API_BASE_URL + url, {
-            method: 'POST',
-            headers: {
-              'Accept': 'text/event-stream',
-              'X-CSRFToken': $cookies.get("csrftoken"),
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(params),
-            credentials: 'include'
-          }).then(response => {
             const reader = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let buffer = '';
-            // 处理流数据
-            reader.read().then(
-                function processText({ done, value }) {
-                    if (done) {
-                        console.log('Stream complete');
-                        return;
-                    }
-                    // 将读取到的 Uint8Array 转换为字符串并添加到 buffer 中
-                    buffer += decoder.decode(value, { stream: true });
-                    // 解析 buffer 中完整的事件
-                    let parts = buffer.split("\n\n");
-                    buffer = parts.pop(); // 确保最后一个部分是未完成的事件
-                    for (let part of parts) {
-                        const streamResponse = parseSSEMessage(part);
-                        if (streamResponse) {
-                            onEvent(streamResponse); // 调用回调函数传递事件
-                          }
-                    }
-                    // 继续读取流
-                    return reader.read().then(processText);
-                });
-            }).catch(error => {onError(error)});
 
-        // 解析 SSE 消息
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                let parts = buffer.split("\n\n");
+                buffer = parts.pop();
+                for (let part of parts) {
+                    const streamResponse = parseSSEMessage(part);
+                    if (streamResponse) {
+                        await onEvent(streamResponse);
+                    }
+                }
+            }
+        } catch (error) {
+            onError(error);
+        }
+
         function parseSSEMessage(data) {
             const contentString = data.replace(/^data: /, '');
-            return JSON.parse(contentString)
+            return JSON.parse(contentString);
         }
     }
 
