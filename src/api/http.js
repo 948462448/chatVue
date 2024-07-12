@@ -1,7 +1,5 @@
 import request from '@/api/request'
-import axios from 'axios';
-// import config from '@/config'
-const source = axios.CancelToken.source();
+let controller = null;
 const http = {
     get(url, params) {
         const config = {
@@ -37,6 +35,8 @@ const http = {
     },
 
     async postWithHeaderAndStream(url, params, onEvent, onError) {
+        controller = new AbortController()
+        const signal = controller.signal;
         try {
             const response = await fetch(import.meta.env.VUE_APP_API_BASE_URL + url, {
                 method: 'POST',
@@ -46,7 +46,8 @@ const http = {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(params),
-                credentials: 'include'
+                credentials: 'include',
+                signal: signal 
             });
 
             const reader = response.body.getReader();
@@ -76,7 +77,14 @@ const http = {
             const contentString = data.replace(/^data: /, '');
             return JSON.parse(contentString);
         }
+
+    },
+
+    chatStreamStop() {
+        controller.abort();
+        console.log('Request aborted');
     }
+
 
 
 }

@@ -40,3 +40,7 @@ export function doGetChatRecord(params) {
 export function doFlushChatRecord(params, header) {
     return http.postWithHeader("/api/v1/chat/flush", params, header)
 }
+
+export function chatStreamStop() {
+    return http.chatStreamStop()
+}

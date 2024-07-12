@@ -88,8 +88,11 @@
             <div class="message-input">
                 <a-textarea v-model:value="sendMessageStr" :rows="4" placeholder="在此输入, ctrl + enter / shift + enter 换行"
                     :maxlength="10000" @keypress.enter="handleKeyDown" />
-                <div class="send-button">
+                <div v-if="!isStreamOpen" class="send-button">
                     <a-button type="primary" :disabled="!sendMessageStr.trim()" @click="sendMessage">Send</a-button>
+                </div>
+                <div v-else="isStreamOpen" class="send-button">
+                    <a-button type="primary" @click="cancelChatStream" danger>Cancel</a-button>
                 </div>
             </div>
 
@@ -99,7 +102,7 @@
 <style src="./src/assets/chat.css"></style>
 <script setup>
 import { ref, reactive, nextTick, watch, onMounted, getCurrentInstance } from 'vue'
-import { chat, getCsrfToken, doGetChatRecordList, checkUserLogin, doFlushChatRecord, streamChat } from "@/api/api";
+import { chat, getCsrfToken, doGetChatRecordList, checkUserLogin, doFlushChatRecord, streamChat, chatStreamStop } from "@/api/api";
 import LoginComponent from './LoginComponent.vue';
 import { message } from 'ant-design-vue';
 import { v4 as uuidv4 } from 'uuid';
@@ -112,6 +115,10 @@ const messageList = ref([])
 const currentMessageList = ref([])
 //是否在等待应答
 const isLoading = ref(false)
+//请求流是否打开
+const isStreamOpen = ref(false)
+//是否取消请求流
+const isCancelStream = ref(false)
 //chatOut的div高度
 const chatOutDiv = ref(null)
 //菜单选择key
@@ -120,7 +127,6 @@ const selectedKeys = ref(['1']);
 const openKeys = ref(['sub1']);
 
 const instance = getCurrentInstance();
-
 //$cookies
 const $cookies = instance.appContext.config.globalProperties.$cookies;
 
@@ -131,6 +137,7 @@ const chatId = ref(null)
 const chatRecordList = ref([])
 
 const chatRecordSelectItem = ref(null)
+
 
 onMounted(() => {
     if (!$cookies.get("csrftoken")) {
@@ -304,18 +311,25 @@ async function steamDoSend(uuid) {
      */
      async function streamResponseHandler(streamResponse) {
         isLoading.value = false;
+        isStreamOpen.value = true;
         if (streamResponse.data.finish == false) {
             let existingMessage = messageList.value.find(msg => msg.id === uuid + "_a");
+            let existingCurrentMessage = currentMessageList.value.find(msg => msg.id === uuid + "_a");
             if (existingMessage) {
                 for (let char of streamResponse.data.message) {
                     existingMessage.content += char;
+                    existingCurrentMessage.content += char;
                     await new Promise(resolve => setTimeout(resolve, 5)); // 等待50毫秒
                 }
             } else {
                 messageList.value.push({ id: uuid + "_a", content: streamResponse.data.message, role: streamResponse.data.role, type: "chat" });
-                currentMessageList.value.push({ id: uuid + "_a", content: streamResponse.data.message, role: "assistant" });
+                currentMessageList.value.push({ id: uuid + "_a", content: streamResponse.data.message,  role: streamResponse.data.role});
             }
+        }else {
+            //请求结束
+            isStreamOpen.value = false;
         }
+
         chatId.value = streamResponse.data.chatId;
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
@@ -327,12 +341,26 @@ async function steamDoSend(uuid) {
      * 处理流式响应返回错误信息
      */
     function streamResponseHandleError(error) {
-        console.error('stream request error:', error);
-        isLoading.value = false
-        messageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "system", type: "error" })
-        currentMessageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "user", })
-        console.log(err)
+        //不是用户主动取消
+        if(!isCancelStream.value) {
+            messageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "system", type: "error" })
+            currentMessageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "user", })
+            console.error(error)
+        }else {
+            let existingMessage = messageList.value.find(msg => msg.id === uuid + "_a");
+            let existingCurrentMessage = currentMessageList.value.find(msg => msg.id === uuid + "_a");
+            existingMessage.role = "system"
+            existingMessage.type = "cancle"
+            existingCurrentMessage.role = "system"
+        }
     }
+}
+/**
+ * 取消对话请求流
+ */
+function cancelChatStream() {
+    isCancelStream.value = true;
+    chatStreamStop();
 }
 
 /**
