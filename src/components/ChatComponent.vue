@@ -277,7 +277,7 @@ async function doSend(uuid) {
         isLoading.value = false
         messageList.value.push({id:uuid, content: return_res.message, role: "assistant", type: "chat" })
         currentMessageList.value.push({id:uuid, content: return_res.message, role: "assistant" })
-        chatId.value = return_res.id
+        chatId.value = return_res.chatId
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
@@ -316,13 +316,13 @@ async function steamDoSend(uuid) {
                 currentMessageList.value.push({ id: uuid + "_a", content: streamResponse.data.message, role: "assistant" });
             }
         }
-        chatId.value = streamResponse.data.id;
+        chatId.value = streamResponse.data.chatId;
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
         });
     }
-    
+
     /**
      * 处理流式响应返回错误信息
      */
