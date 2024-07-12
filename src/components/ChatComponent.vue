@@ -13,10 +13,11 @@
                     <a-list size="small" item-layout="horizontal" :data-source="chatRecordList"
                         :locale="{ emptyText: '登录后展示对话列表' }">
                         <template #renderItem="{ item }">
-                            <a-list-item class= "chat-record" slot-scope="item" @click="flushChatRecordList(item)" :class="['chat-record', {'chat-record-selected': item === chatRecordSelectItem} ]">
-                               <div class="chat-record-textarea">
-                                {{item.fields.title }}
-                               </div>
+                            <a-list-item class="chat-record" slot-scope="item" @click="flushChatRecordList(item)"
+                                :class="['chat-record', { 'chat-record-selected': item === chatRecordSelectItem }]">
+                                <div class="chat-record-textarea">
+                                    {{ item.fields.title }}
+                                </div>
                             </a-list-item>
                         </template>
 
@@ -98,9 +99,10 @@
 <style src="./src/assets/chat.css"></style>
 <script setup>
 import { ref, reactive, nextTick, watch, onMounted, getCurrentInstance } from 'vue'
-import { chat, getCsrfToken, doGetChatRecordList, checkUserLogin, doFlushChatRecord } from "@/api/api";
+import { chat, getCsrfToken, doGetChatRecordList, checkUserLogin, doFlushChatRecord, streamChat } from "@/api/api";
 import LoginComponent from './LoginComponent.vue';
 import { message } from 'ant-design-vue';
+import { v4 as uuidv4 } from 'uuid';
 
 //输入框文本
 const sendMessageStr = ref("")
@@ -202,8 +204,6 @@ watch(openKeys, val => {
     console.log('openKeys', val);
 });
 
-
-
 function cacheCookie() {
     getCsrfToken().then((res) => {
         let csrftoken = getCookie("csrftoken")
@@ -232,9 +232,10 @@ async function sendMessage() {
     if ($cookies.get("csrftoken") == "") {
         cacheCookie()
     }
-    messageList.value.push({ content: sendMessageStr.value, role: "user", type: "chat" })
-    currentMessageList.value.push({ content: sendMessageStr.value, role: "user", type: "chat" })
-    await doSend()
+    const uuid = uuidv4().replace("-", "") 
+    messageList.value.push({id: uuid + "_q", content: sendMessageStr.value, role: "user", type: "chat" })
+    currentMessageList.value.push({id: uuid + "_q", content: sendMessageStr.value, role: "user", type: "chat" })
+    await steamDoSend(uuid)
     // 处理消息发送逻辑
     sendMessageStr.value = ""; // 发送消息后清空文本框
     doGetChatRecord()
@@ -248,37 +249,82 @@ async function reSendMessage() {
         messageList.value.pop()
         currentMessageList.value.pop()
     }
-    await doSend()
+    await steamDoSend()
     // 处理消息发送逻辑
     sendMessageStr.value = ""; // 发送消息后清空文本框
     doGetChatRecord()
 }
 
-async function doSend() {
+async function doSend(uuid) {
     nextTick(() => {
         let scrollElem = chatOutDiv.value;
         scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
     });
-    const param = { msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value }
+    const param = {uuid: uuid, msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value }
     isLoading.value = true
     let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
     await chat(param, headers).then((res) => {
         const return_res = res.data.data
         isLoading.value = false
-        messageList.value.push({ content: return_res.message, role: "assistant", type: "chat" })
-        currentMessageList.value.push({ content: return_res.message, role: "assistant" })
+        messageList.value.push({id:uuid, content: return_res.message, role: "assistant", type: "chat" })
+        currentMessageList.value.push({id:uuid, content: return_res.message, role: "assistant" })
         chatId.value = return_res.id
         nextTick(() => {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
         });
     }).catch((err) => {
+        const uuid = uuidv4();
         isLoading.value = false
-        messageList.value.push({ content: "服务器端响应失败，请重试！", role: "system", type: "error" })
-        currentMessageList.value.push({ content: "服务器端响应失败，请重试！", role: "user", })
+        messageList.value.push({id:uuid, content: "服务器端响应失败，请重试！", role: "system", type: "error" })
+        currentMessageList.value.push({id:uuid, content: "服务器端响应失败，请重试！", role: "user", })
         console.log(err)
     });
 }
+
+async function steamDoSend(uuid) {
+    nextTick(() => {
+        let scrollElem = chatOutDiv.value;
+        scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
+    });
+    const param = {uuid: uuid, msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value }
+    isLoading.value = true
+    let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
+    streamChat(param, headers, streamResponseHandler.bind(this), streamResponseHandleError.bind(this))
+    /**
+     * 处理流式响应返回的消息
+     */
+    function streamResponseHandler(streamResopnse) {
+        console.log("uuid:", uuid)
+        console.info('vue 回调:', streamResopnse);
+        isLoading.value = false
+        if (streamResopnse.data.finish == false) {
+            let existingMessage = messageList.value.find(msg => msg.id === uuid + "_a");
+            if (existingMessage) {
+                existingMessage.content = streamResopnse.data.message;
+            } else {
+                messageList.value.push({id:uuid + "_a", content: streamResopnse.data.message, role: streamResopnse.data.role, type: "chat" })
+                currentMessageList.value.push({id:uuid + "_a", content: streamResopnse.data.message, role: "assistant" })
+            }
+        }
+        chatId.value = streamResopnse.data.id
+        nextTick(() => {
+            let scrollElem = chatOutDiv.value;
+            scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
+        });
+    }
+    /**
+     * 处理流式响应返回错误信息
+     */
+    function streamResponseHandleError(error) {
+        console.error('stream request error:', error);
+        isLoading.value = false
+        messageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "system", type: "error" })
+        currentMessageList.value.push({id:uuid + "_a", content: "服务器端响应失败，请重试！", role: "user", })
+        console.log(err)
+    }
+}
+
 
 //清除记忆
 async function cleanMemery() {

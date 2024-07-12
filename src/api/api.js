@@ -3,7 +3,12 @@ import http from './http.js'
 
 // 获取对话记录
 export function chat(params, header) {
-    return http.postWithHeader("/api/v2/chat/get", params, header)
+    return http.postWithHeader("/api/v2/batch/chat", params, header)
+}
+
+// 获取对话记录
+export function streamChat(params, handlerEvent, handlerError) {
+    return http.postWithHeaderAndStream("/api/v3/stream/chat", params, handlerEvent, handlerError)
 }
 
 export function getCsrfToken() {
