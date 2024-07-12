@@ -297,14 +297,11 @@ async function steamDoSend(uuid) {
     });
     const param = {uuid: uuid, msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value }
     isLoading.value = true
-    let headers = { "X-CSRFToken": $cookies.get("csrftoken") }
-    streamChat(param, headers, streamResponseHandler.bind(this), streamResponseHandleError.bind(this))
+    streamChat(param, streamResponseHandler.bind(this), streamResponseHandleError.bind(this))
     /**
      * 处理流式响应返回的消息
      */
     function streamResponseHandler(streamResopnse) {
-        console.log("uuid:", uuid)
-        console.info('vue 回调:', streamResopnse);
         isLoading.value = false
         if (streamResopnse.data.finish == false) {
             let existingMessage = messageList.value.find(msg => msg.id === uuid + "_a");

@@ -37,8 +37,9 @@ const http = {
     },
 
     postWithHeaderAndStream(url, params, onEvent, onError) {
+
         // 设定 fetch 请求
-        fetch( import.meta.env.VUE_APP_API_BASE_URL + '/api/v3/stream/chat', {
+        fetch( import.meta.env.VUE_APP_API_BASE_URL + url, {
             method: 'POST',
             headers: {
               'Accept': 'text/event-stream',
@@ -76,7 +77,6 @@ const http = {
 
         // 解析 SSE 消息
         function parseSSEMessage(data) {
-            console.log("获取到的数据:", data)
             const contentString = data.replace(/^data: /, '');
             return JSON.parse(contentString)
         }
