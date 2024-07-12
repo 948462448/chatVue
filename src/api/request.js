@@ -1,7 +1,8 @@
 import axios from 'axios';
+// import config from '@/config'
 // 创建一个自定义的Axios对象
 const Axios = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: import.meta.env.VUE_APP_API_BASE_URL,
     timeout: 60000,
     headers: { 
         'Content-Type': 'application/json'

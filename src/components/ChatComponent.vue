@@ -242,19 +242,27 @@ async function sendMessage() {
 }
 
 
-//发送消息
+/**
+ * 重新发送消息
+ */
 async function reSendMessage() {
     const lastChat = messageList.value[messageList.value.length - 1]
     if (lastChat.role !== "user" && lastChat.chat !== "chat") {
         messageList.value.pop()
         currentMessageList.value.pop()
     }
-    await steamDoSend()
+    const newLastChat = messageList.value[messageList.value.length - 1]
+    await steamDoSend(newLastChat.id)
     // 处理消息发送逻辑
     sendMessageStr.value = ""; // 发送消息后清空文本框
     doGetChatRecord()
 }
 
+/**
+ * 批请求，一次行返回回答
+ *  
+ * @param uuid 对话唯一ID
+ */
 async function doSend(uuid) {
     nextTick(() => {
         let scrollElem = chatOutDiv.value;
@@ -325,8 +333,9 @@ async function steamDoSend(uuid) {
     }
 }
 
-
-//清除记忆
+/**
+ * 清楚记忆
+ */
 async function cleanMemery() {
 
     messageList.value.push({ content: "", role: "system", type: "line" })
@@ -347,13 +356,19 @@ async function cleanMemery() {
 
 }
 
+/**
+ * 添加新聊天
+ */
 function addNewChat() {
     messageList.value = []
     currentMessageList.value = []
     chatId.value = null
 }
 
-//判断按键
+/**
+ * 判断按键
+ * @param e 按键事件 
+ */
 function handleKeyDown(e) {
     if ((e.ctrlKey || e.shiftKey) && e.key === 'Enter') {
         insertNewLine(e);

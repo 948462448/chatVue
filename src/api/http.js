@@ -1,5 +1,6 @@
 import request from '@/api/request'
 import axios from 'axios';
+// import config from '@/config'
 const source = axios.CancelToken.source();
 const http = {
     get(url, params) {
@@ -37,7 +38,7 @@ const http = {
 
     postWithHeaderAndStream(url, params, onEvent, onError) {
         // 设定 fetch 请求
-        fetch('http://localhost:8000/api/v3/stream/chat', {
+        fetch( import.meta.env.VUE_APP_API_BASE_URL + '/api/v3/stream/chat', {
             method: 'POST',
             headers: {
               'Accept': 'text/event-stream',
