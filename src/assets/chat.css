@@ -75,10 +75,14 @@ a {
   width: 83%;  /* 视口宽度的80% */
   margin: 0 auto; /* 使 container 水平居中 */
   box-sizing: border-box;  /* 包括内边距和边框 */
+  padding-left: 5px;
+  padding-right: 5px;
+
 }
 
 .message-out {
   display: flex;
+  margin-top: 20px;
   flex-direction: column; /* 垂直堆叠盒子 */ 
   height: 80%;
   width: 100%;
@@ -126,7 +130,7 @@ a {
 }
 
 .bubble.bot {
-  background-color: #e5e5ea;
+  background-color: #ebebeffa;
   color: black;
   align-self: flex-end;
 }
@@ -134,6 +138,7 @@ a {
 .message-input {
   position: relative;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .send-button {

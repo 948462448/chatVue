@@ -10,13 +10,10 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
 import path from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
 
-  console.log("command:", command)
-  console.log("mode:", mode)
   // 加载当前环境的变量
   const env = loadEnv(mode, process.cwd(), '');
-  console.log("env:", env)
 
   return {
     plugins: [
