@@ -62,6 +62,17 @@ export function getCsrfToken() {
 export function checkUserLogin() {
     return http.get("/api/v1/check/login", null)
 }
+
+/**
+ * 注册
+ * @param {*} params 用户信息
+ * @returns 注册结果
+ */
+export function register(params) {
+    const headers = { "X-CSRFToken": $cookies.get("csrftoken") }
+    return http.postWithHeader("/api/v1/register", params, headers)
+}
+
 /**
  * 登录
  * @param {*} params 用户信息

@@ -11,7 +11,7 @@
             <div class="chat-list">
                 <div style="width: 80%; margin-left: 10%;">
                     <a-list size="small" item-layout="horizontal" :data-source="chatRecordList"
-                        :locale="{ emptyText: '登录后展示对话列表' }">
+                        :locale="exmptyChatListText">
                         <template #renderItem="{ item }">
                             <a-list-item class="chat-record" slot-scope="item" @click="flushChatRecordList(item)"
                                 @mouseenter="item.showOpt = true" @mouseleave="item.showOpt = false"
@@ -45,7 +45,7 @@
                 <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
                     style="width: 90%" mode="inline" :items="items" @click="handleClick"></a-menu>
                 <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false; doGetChatRecord()"
-                    @isLogout="chatRecordTitleList = []; chatRecordList = []" />
+                    @isLogout="messageList = []; chatRecordList = []; currentMessageList = []; isLogin = false;  doGetEmptyChatListText()" />
             </div>
             <div class="beian">
                 <div style="text-align:center;">
@@ -147,10 +147,14 @@ const instance = getCurrentInstance();
 const $cookies = instance.appContext.config.globalProperties.$cookies;
 // 是否展示登录界面
 const showLogin = ref(false)
+// 当前是否登录
+const isLogin = ref(false)
 //当前对话记录ID
 const chatId = ref(null)
 //聊天记录列表
 const chatRecordList = ref([])
+//聊天记录为空展示文本
+const exmptyChatListText = ref({ emptyText: '登录后展示对话列表' })
 //聊天记录选中对象
 const chatRecordSelectItem = ref(null)
 //是否编辑对话名字
@@ -228,9 +232,19 @@ function flushChatRecordList(item) {
     }
 }
 
+function doGetEmptyChatListText() {
+    if(isLogin.value) {
+        exmptyChatListText.value = { emptyText: '请开启新对话' }
+    }else {
+        exmptyChatListText.value = { emptyText: '登录后展示对话列表' }
+    }
+}
+
 async function doGetChatRecord() {
-    const isLogin = await api.checkUserLogin()
-    if (isLogin.data.data) {
+    const req = await api.checkUserLogin()
+    isLogin.value = req.data.data
+    if (req.data.data) {
+        exmptyChatListText.value = { emptyText: '请开启新对话' }
         await api.doGetChatRecordList().then((req) => {
             const returnRes = req.data
             if (returnRes.code == 200) {
@@ -261,8 +275,8 @@ const items = reactive([
     getItem(null, null, null, [getItem('登录', 'login'), getItem('联系我们', 'contact')], 'group'),
 ]);
 
-const handleClick = e => {
-    if (e.key == "login") {
+const handleClick = (event) => {
+    if (event.key == "login") {
         showLogin.value = true
     }
 };
