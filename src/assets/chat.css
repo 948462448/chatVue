@@ -1,6 +1,7 @@
 #body{
   display: flex;
   overflow-y: hidden;
+  flex-direction: column;
   /* overflow: hidden;  */
 }
 
@@ -9,34 +10,31 @@
   display: none;
 }
 
+.middle-webpage {
+  display: flex;
+  flex-direction: row;
+  height: 93vh;
+}
+
 .record-list {
   background-color: #efefef;
   display: flex;
   flex-direction: column; /* 垂直堆叠盒子 */
   width: 210px;
   border-right: 1px solid rgb(219, 215, 215);
-}
-
-.logo {
-  margin-top: 1.5vh;
-  text-align:center;
-  font-family:"华文彩云";/*设置字体*/
-  font-size:35px; /*设置字体大小*/
-  font-weight:bolder; /*设置字体粗细*/
-  -webkit-text-stroke:1px #2a7af2;        /*文字描边*/
-  -webkit-text-fill-color:#2a7af2;    /*设置文字的填充颜色*/
+  flex-shrink: 0; /* 防止缩小 */
 }
 
 .chat-list {
   height: 70%;
   width: 100%;
+  padding: 5px;
 }
 
 .platfrom-list {
-  height: 17%;
+  height: 20%;
   width: 100%;
   margin-left: 5%;
-  
 }
 
 #platformLeftMenu {
@@ -50,8 +48,9 @@
 }
 
 .beian {
-  height: 8%;
+  height: 10%;
   width: 100%;
+  align-items: center; 
   display: flex;
   flex-direction: column; /* 垂直堆叠盒子 */
   white-space: nowrap; /* 防止文本换行 */
@@ -71,8 +70,8 @@ a {
   flex-direction: column; /* 垂直堆叠盒子 */
   justify-content: center; /* 水平居中 */
   align-items: flex-end; /* 垂直对齐底部 */
-  height: 100vh; /* 视口高度的100% */
-  width: 83%;  /* 视口宽度的80% */
+  height: 95vh; /* 视口高度的100% */
+  width: 82%;  /* 视口宽度的80% */
   margin: 0 auto; /* 使 container 水平居中 */
   box-sizing: border-box;  /* 包括内边距和边框 */
   padding-left: 5px;
@@ -82,9 +81,8 @@ a {
 
 .message-out {
   display: flex;
-  margin-top: 20px;
   flex-direction: column; /* 垂直堆叠盒子 */ 
-  height: 80%;
+  height: 73%;
   width: 100%;
   overflow-y: auto;
   /* 隐藏滚动条 */

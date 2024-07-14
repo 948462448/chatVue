@@ -1,126 +1,128 @@
 <template>
     <div id="body">
-        <div class="record-list">
-            <div ref="callback"></div>
-            <div class="logo">
-                DPD
-            </div>
-            <div style="width: 80%; margin-left: 10%;">
-                <a-divider />
-            </div>
-            <div class="chat-list">
-                <div style="width: 80%; margin-left: 10%;">
-                    <a-list size="small" item-layout="horizontal" :data-source="chatRecordList"
-                        :locale="exmptyChatListText">
-                        <template #renderItem="{ item }">
-                            <a-list-item class="chat-record" slot-scope="item" @click="isStreamOpen ? null : flushChatRecordList(item)"
-                                @mouseenter="item.showOpt = true" @mouseleave="item.showOpt = false"
-                                :class="['chat-record', { 'chat-record-selected': item === chatRecordSelectItem }, { 'disabled-icon': isStreamOpen }]">
-                                <template v-if="!isEditChatRecordName">
-                                    <div class="chat-record-textarea">
-                                        {{ item.fields.title }}
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <input v-model="renameTitle" @keyup.enter="isStreamOpen ? null : chatRecordRename(item, renameTitle)"
-                                        style="width: 100%;" placeholder="按回车确认" />
-                                </template>
+        <HeaderComponent />
+        <div class="middle-webpage">
+            <div class="record-list">
+                <div class="chat-list">
+                    <div style="width: 80%; margin-left: 10%;">
+                        <a-list size="small" item-layout="horizontal" :data-source="chatRecordList"
+                            :locale="exmptyChatListText">
+                            <template #renderItem="{ item }">
+                                <a-list-item class="chat-record" slot-scope="item"
+                                    @click="isStreamOpen ? null : flushChatRecordList(item)"
+                                    @mouseenter="item.showOpt = true" @mouseleave="item.showOpt = false"
+                                    :class="['chat-record', { 'chat-record-selected': item === chatRecordSelectItem }, { 'disabled-icon': isStreamOpen }]">
+                                    <template v-if="!isEditChatRecordName">
+                                        <div class="chat-record-textarea">
+                                            {{ item.fields.title }}
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <input v-model="renameTitle"
+                                            @keyup.enter="isStreamOpen ? null : chatRecordRename(item, renameTitle)"
+                                            style="width: 100%;" placeholder="按回车确认" />
+                                    </template>
 
-                                <div v-show="item.showOpt && !isEditChatRecordName" style="display: flex;">
-                                    <div @click.stop="isStreamOpen ? null : (isEditChatRecordName = true);" style="margin-right: 3px;" :class="{ 'disabled-icon': isStreamOpen }">
-                                        <FormOutlined />
+                                    <div v-show="item.showOpt && !isEditChatRecordName" style="display: flex;">
+                                        <div @click.stop="isStreamOpen ? null : (isEditChatRecordName = true);"
+                                            style="margin-right: 3px;" :class="{ 'disabled-icon': isStreamOpen }">
+                                            <FormOutlined />
+                                        </div>
+                                        <div @click.stop="isStreamOpen ? null : deleteChatRecord(item)"
+                                            :class="{ 'disabled-icon': isStreamOpen }">
+                                            <DeleteOutlined />
+                                        </div>
                                     </div>
-                                    <div @click.stop="isStreamOpen ? null : deleteChatRecord(item)" :class="{ 'disabled-icon': isStreamOpen }">
-                                        <DeleteOutlined />
-                                    </div>
-                                </div>
-                            </a-list-item>
-                        </template>
+                                </a-list-item>
+                            </template>
 
-                    </a-list>
+                        </a-list>
 
-                </div>
-            </div>
-            <div class="platfrom-list">
-                <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
-                    style="width: 90%" mode="inline" :items="items" @click="handleClick"></a-menu>
-                <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false; doGetChatRecord()"
-                    @isLogout="messageList = []; chatRecordList = []; currentMessageList = []; isLogin = false; doGetEmptyChatListText()" />
-            </div>
-            <div class="beian">
-                <div style="text-align:center;">
-                    <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener">浙公网安备33011002017141号</a>
-                </div>
-                <div style="text-align:center;">
-                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">黑ICP备2023006322号</a>
-                </div>
-            </div>
-        </div>
-        <div class="chat-container">
-            <div class="message-out" ref="chatOutDiv">
-                <div v-for="(message, index) in messageList" :key="index"
-                    :class="['message', message.role === 'user' ? 'user' : message.role === 'system' ? 'system' : 'bot']">
-                    <div v-if="message.role === 'system' && message.type === 'line'" class="divider-line">
-                        <a-divider>以上为历史对话记录</a-divider>
                     </div>
-                    <div v-else-if="message.role === 'system' && message.type === 'error'">
-                        <div class="message bot">
-                            <div class="bubble bot">
-                                服务器端响应失败，请重试！
+                </div>
+                <div class="platfrom-list">
+                    <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
+                        style="width: 90%" mode="inline" :items="items" @click="handleClick"></a-menu>
+                    <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false; doGetChatRecord()"
+                        @isLogout="messageList = []; chatRecordList = []; currentMessageList = []; isLogin = false; doGetEmptyChatListText()" />
+                </div>
+                <div class="beian">
+                    <div style="text-align:center;">
+                        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener">浙公网安备33011002017141号</a>
+                    </div>
+                    <div style="text-align:center;">
+                        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">黑ICP备2023006322号</a>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-container">
+                <div class="message-out" ref="chatOutDiv">
+                    <div v-for="(message, index) in messageList" :key="index"
+                        :class="['message', message.role === 'user' ? 'user' : message.role === 'system' ? 'system' : 'bot']">
+                        <div v-if="message.role === 'system' && message.type === 'line'" class="divider-line">
+                            <a-divider>以上为历史对话记录</a-divider>
+                        </div>
+                        <div v-else-if="message.role === 'system' && message.type === 'error'">
+                            <div class="message bot">
+                                <div class="bubble bot">
+                                    服务器端响应失败，请重试！
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else :class="['bubble', message.role === 'user' ? 'user' : 'bot']">
+                            <div v-if="message.role === 'user'">
+                                {{ message.content }}
+                            </div>
+                            <div v-else>
+                                <v-md-preview :text="message.content"></v-md-preview>
                             </div>
                         </div>
                     </div>
-                    <div v-else :class="['bubble', message.role === 'user' ? 'user' : 'bot']">
-                        <div v-if="message.role === 'user'">
-                            {{ message.content }}
-                        </div>
-                        <div v-else>
-                            <v-md-preview :text="message.content"></v-md-preview>
-                        </div>
-                    </div>
-                </div>
 
-                <div v-if="isLoading">
-                    <div class="message bot">
-                        <div class="bubble bot">
-                            <a-spin />
+                    <div v-if="isLoading">
+                        <div class="message bot">
+                            <div class="bubble bot">
+                                <a-spin />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="util-button-line">
-                <div class="model-list">
-                    <a-select v-model:value="currentLlmModel">
-                        <a-select-option v-for="option in supportLlmModelList" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                        </a-select-option>
-                    </a-select>
+                <div class="util-button-line">
+                    <div class="model-list">
+                        <a-select v-model:value="currentLlmModel">
+                            <a-select-option v-for="option in supportLlmModelList" :key="option.value"
+                                :value="option.value">
+                                {{ option.label }}
+                            </a-select-option>
+                        </a-select>
+
+                    </div>
+                    <div class="add-new-chat">
+                        <a-button type="primary" @click="addNewChat">新增会话</a-button>
+                    </div>
+                    <div class="retry">
+                        <a-button type="primary" @click="reSendMessage"
+                            :disabled="currentMessageList.length == 0">重试一次</a-button>
+                    </div>
+                    <div class="clean-memery">
+                        <a-button type="primary" @click="cleanMemery"
+                            :disabled="messageList.length == 0 || messageList[messageList.length - 1].type == 'line'">清除记忆</a-button>
+                    </div>
 
                 </div>
-                <div class="add-new-chat">
-                    <a-button type="primary" @click="addNewChat">新增会话</a-button>
-                </div>
-                <div class="retry">
-                    <a-button type="primary" @click="reSendMessage"
-                        :disabled="currentMessageList.length == 0">重试一次</a-button>
-                </div>
-                <div class="clean-memery">
-                    <a-button type="primary" @click="cleanMemery"
-                        :disabled="messageList.length == 0 || messageList[messageList.length - 1].type == 'line'">清除记忆</a-button>
+                <div class="message-input">
+                    <a-textarea v-model:value="sendMessageStr" :rows="4"
+                        placeholder="在此输入, ctrl + enter / shift + enter 换行" :maxlength="10000"
+                        @keypress.enter="handleKeyDown" />
+                    <div v-if="!isStreamOpen" class="send-button">
+                        <a-button type="primary" :disabled="!sendMessageStr.trim()" @click="sendMessage">Send</a-button>
+                    </div>
+                    <div v-else="isStreamOpen" class="send-button">
+                        <a-button type="primary" @click="cancelChatStream" danger>Cancel</a-button>
+                    </div>
                 </div>
 
             </div>
-            <div class="message-input">
-                <a-textarea v-model:value="sendMessageStr" :rows="4" placeholder="在此输入, ctrl + enter / shift + enter 换行"
-                    :maxlength="10000" @keypress.enter="handleKeyDown" />
-                <div v-if="!isStreamOpen" class="send-button">
-                    <a-button type="primary" :disabled="!sendMessageStr.trim()" @click="sendMessage">Send</a-button>
-                </div>
-                <div v-else="isStreamOpen" class="send-button">
-                    <a-button type="primary" @click="cancelChatStream" danger>Cancel</a-button>
-                </div>
-            </div>
-
         </div>
     </div>
 </template>
@@ -129,6 +131,7 @@
 import { ref, reactive, nextTick, onMounted, getCurrentInstance } from 'vue'
 import * as api from "@/api/api";
 import LoginComponent from './LoginComponent.vue';
+import HeaderComponent from './HeaderComponent.vue';
 import { message } from 'ant-design-vue';
 import { DeleteOutlined, FormOutlined } from '@ant-design/icons-vue';
 import { v4 as uuidv4 } from 'uuid';
@@ -178,23 +181,21 @@ function doGetSupportLlmModelList() {
     api.doGetSupportLlmModelList().then((req) => {
         const returnRes = req.data
         if (returnRes.code == 200) {
-            console.log("returnRes:",returnRes)
             let llmModelList = JSON.parse(returnRes.data)
-            console.log("llmModelList:", llmModelList)
-            if(llmModelList.length === 0) {
+            if (llmModelList.length === 0) {
                 currentLlmModel.value = "deepseek-chat"
-                supportLlmModelList.value.push({value: "deepseek-chat", label: "deepseek-chat"})
+                supportLlmModelList.value.push({ value: "deepseek-chat", label: "deepseek-chat" })
                 return
             }
             currentLlmModel.value = llmModelList[0]
-            for(let model of llmModelList) {
-                supportLlmModelList.value.push({value: model, label: model})
+            for (let model of llmModelList) {
+                supportLlmModelList.value.push({ value: model, label: model })
             }
         } else {
             currentLlmModel.value = "deepseek-chat"
-            supportLlmModelList.value.push({value: "deepseek-chat", label: "deepseek-chat"})
+            supportLlmModelList.value.push({ value: "deepseek-chat", label: "deepseek-chat" })
         }
-        
+
     })
 }
 
@@ -251,7 +252,6 @@ function flushChatRecordList(item) {
         return
     }
     chatId.value = item.pk
-    console.log("chatId:", chatId.value)
     // 解析JSON字符串
     messageList.value = JSON.parse(item.fields.chat);
     //记录上一次清除记忆的点

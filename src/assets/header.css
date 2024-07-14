@@ -1,0 +1,41 @@
+.header {
+    height: 60px;
+    width: 100%;
+    background-color: #efefef;
+    display: flex;
+    justify-content: flex-start;
+    border-block-end: 1px solid rgba(5, 5, 5, 0.06);
+}
+
+.logo {
+    text-align: center;
+    font-family: "华文彩云";
+    /*设置字体*/
+    font-size: 36px;
+    /*设置字体大小*/
+    font-weight: bolder;
+    /*设置字体粗细*/
+    -webkit-text-stroke: 1px #2a7af2;
+    /*文字描边*/
+    -webkit-text-fill-color: #2a7af2;
+    /*设置文字的填充颜色*/
+    width: 210px;
+    padding-top: 10px;
+    flex-shrink: 0;
+    /* 防止缩小 */
+}
+
+.first-level-menu {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    width: 82%;
+}
+
+#firstLevelMenuId {
+    padding-top: 5px;
+    background-color: #efefef;
+    font-size: 20px;
+    font-weight: bolder;
+    font-family: "华文彩云";
+}

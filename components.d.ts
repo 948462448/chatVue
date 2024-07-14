@@ -24,7 +24,10 @@ declare module 'vue' {
     ASpace: typeof import('ant-design-vue/es')['Space']
     ASpin: typeof import('ant-design-vue/es')['Spin']
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
+    ATimeline: typeof import('ant-design-vue/es')['Timeline']
+    ATimelineItem: typeof import('ant-design-vue/es')['TimelineItem']
     ChatComponent: typeof import('./src/components/ChatComponent.vue')['default']
+    HeaderComponent: typeof import('./src/components/HeaderComponent.vue')['default']
     LoginComponent: typeof import('./src/components/LoginComponent.vue')['default']
   }
 }
