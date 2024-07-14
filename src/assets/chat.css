@@ -199,3 +199,10 @@ a {
   background-color: #e6f4ff; /* 你可以根据需要更改这个颜色 */
   border-radius: 10px;
 }
+
+/*
+ 鼠标浮上去变图标
+*/
+.disabled-icon:hover {
+  cursor: not-allowed;
+}

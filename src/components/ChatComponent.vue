@@ -13,24 +13,24 @@
                     <a-list size="small" item-layout="horizontal" :data-source="chatRecordList"
                         :locale="exmptyChatListText">
                         <template #renderItem="{ item }">
-                            <a-list-item class="chat-record" slot-scope="item" @click="flushChatRecordList(item)"
+                            <a-list-item class="chat-record" slot-scope="item" @click="isStreamOpen ? null : flushChatRecordList(item)"
                                 @mouseenter="item.showOpt = true" @mouseleave="item.showOpt = false"
-                                :class="['chat-record', { 'chat-record-selected': item === chatRecordSelectItem }]">
+                                :class="['chat-record', { 'chat-record-selected': item === chatRecordSelectItem }, { 'disabled-icon': isStreamOpen }]">
                                 <template v-if="!isEditChatRecordName">
                                     <div class="chat-record-textarea">
                                         {{ item.fields.title }}
                                     </div>
                                 </template>
                                 <template v-else>
-                                    <input v-model="renameTitle" @keyup.enter="chatRecordRename(item, renameTitle)"
+                                    <input v-model="renameTitle" @keyup.enter="isStreamOpen ? null : chatRecordRename(item, renameTitle)"
                                         style="width: 100%;" placeholder="按回车确认" />
                                 </template>
 
                                 <div v-show="item.showOpt && !isEditChatRecordName" style="display: flex;">
-                                    <div @click.stop="isEditChatRecordName = true;" style="margin-right: 3px;">
+                                    <div @click.stop="isStreamOpen ? null : (isEditChatRecordName = true);" style="margin-right: 3px;" :class="{ 'disabled-icon': isStreamOpen }">
                                         <FormOutlined />
                                     </div>
-                                    <div @click.stop="deleteChatRecord(item)">
+                                    <div @click.stop="isStreamOpen ? null : deleteChatRecord(item)" :class="{ 'disabled-icon': isStreamOpen }">
                                         <DeleteOutlined />
                                     </div>
                                 </div>
