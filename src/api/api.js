@@ -109,10 +109,19 @@ export function doGetChatRecord(params) {
 export function doFlushChatRecord(params, header) {
     return http.postWithHeader("/api/v1/chat/flush", params, header)
 }
+
 /**
  * 停止流式对话
  * @returns 控制流式对话控制器
  */
 export function chatStreamStop() {
     return http.chatStreamStop()
+}
+
+/**
+ * 获取已经接入的大模型列表
+ * @returns 已经接入的大模型列表
+ */
+export function doGetSupportLlmModelList() {
+    return http.get("api/v1/support/llm/model/list", null)
 }

@@ -23,11 +23,11 @@
                                 </template>
                                 <template v-else>
                                     <input v-model="renameTitle" @keyup.enter="chatRecordRename(item, renameTitle)"
-                                    style="width: 100%;" placeholder="按回车确认"/>
+                                        style="width: 100%;" placeholder="按回车确认" />
                                 </template>
 
                                 <div v-show="item.showOpt && !isEditChatRecordName" style="display: flex;">
-                                    <div @click.stop="isEditChatRecordName = true; " style="margin-right: 3px;">
+                                    <div @click.stop="isEditChatRecordName = true;" style="margin-right: 3px;">
                                         <FormOutlined />
                                     </div>
                                     <div @click.stop="deleteChatRecord(item)">
@@ -45,7 +45,7 @@
                 <a-menu id="platformLeftMenu" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
                     style="width: 90%" mode="inline" :items="items" @click="handleClick"></a-menu>
                 <LoginComponent v-if="showLogin" :open="true" @close="showLogin = false; doGetChatRecord()"
-                    @isLogout="messageList = []; chatRecordList = []; currentMessageList = []; isLogin = false;  doGetEmptyChatListText()" />
+                    @isLogout="messageList = []; chatRecordList = []; currentMessageList = []; isLogin = false; doGetEmptyChatListText()" />
             </div>
             <div class="beian">
                 <div style="text-align:center;">
@@ -89,6 +89,14 @@
                 </div>
             </div>
             <div class="util-button-line">
+                <div class="model-list">
+                    <a-select v-model:value="currentLlmModel">
+                        <a-select-option v-for="option in supportLlmModelList" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                        </a-select-option>
+                    </a-select>
+
+                </div>
                 <div class="add-new-chat">
                     <a-button type="primary" @click="addNewChat">新增会话</a-button>
                 </div>
@@ -100,6 +108,7 @@
                     <a-button type="primary" @click="cleanMemery"
                         :disabled="messageList.length == 0 || messageList[messageList.length - 1].type == 'line'">清除记忆</a-button>
                 </div>
+
             </div>
             <div class="message-input">
                 <a-textarea v-model:value="sendMessageStr" :rows="4" placeholder="在此输入, ctrl + enter / shift + enter 换行"
@@ -161,6 +170,33 @@ const chatRecordSelectItem = ref(null)
 const isEditChatRecordName = ref(false)
 //编辑后的名字
 const renameTitle = ref("")
+//支持的大模型列表
+const currentLlmModel = ref("")
+const supportLlmModelList = ref([]);
+
+function doGetSupportLlmModelList() {
+    api.doGetSupportLlmModelList().then((req) => {
+        const returnRes = req.data
+        if (returnRes.code == 200) {
+            console.log("returnRes:",returnRes)
+            let llmModelList = JSON.parse(returnRes.data)
+            console.log("llmModelList:", llmModelList)
+            if(llmModelList.length === 0) {
+                currentLlmModel.value = "deepseek-chat"
+                supportLlmModelList.value.push({value: "deepseek-chat", label: "deepseek-chat"})
+                return
+            }
+            currentLlmModel.value = llmModelList[0]
+            for(let model of llmModelList) {
+                supportLlmModelList.value.push({value: model, label: model})
+            }
+        } else {
+            currentLlmModel.value = "deepseek-chat"
+            supportLlmModelList.value.push({value: "deepseek-chat", label: "deepseek-chat"})
+        }
+        
+    })
+}
 
 
 onMounted(() => {
@@ -168,14 +204,15 @@ onMounted(() => {
         cacheCookie()
     }
     doGetChatRecord()
+    doGetSupportLlmModelList()
 })
 
 function chatRecordRename(item, rename) {
-    if(rename === "") {
+    if (rename === "") {
         return
     }
     isEditChatRecordName.value = false;
-    let params = {chatId: item.pk, title: rename}
+    let params = { chatId: item.pk, title: rename }
     api.doRenameChatRecord(params).then((req) => {
         const returnRes = req.data
         if (returnRes.code == 200) {
@@ -185,7 +222,7 @@ function chatRecordRename(item, rename) {
         } else {
             message.error(returnRes.msg)
         }
-    }) 
+    })
 }
 
 async function deleteChatRecord(item) {
@@ -233,9 +270,9 @@ function flushChatRecordList(item) {
 }
 
 function doGetEmptyChatListText() {
-    if(isLogin.value) {
+    if (isLogin.value) {
         exmptyChatListText.value = { emptyText: '请开启新对话' }
-    }else {
+    } else {
         exmptyChatListText.value = { emptyText: '登录后展示对话列表' }
     }
 }
@@ -283,9 +320,9 @@ const handleClick = (event) => {
 
 
 function cacheCookie() {
-    api.getCsrfToken().then((res) => {
+    api.getCsrfToken().then((req) => {
         let csrftoken = getCookie("csrftoken")
-        $cookies.set("csrftoken", csrftoken)
+        $cookies.set("csrftoken", csrftoken, 3 * 60 * 60)
     })
 }
 
@@ -376,7 +413,7 @@ async function steamDoSend(uuid) {
             let scrollElem = chatOutDiv.value;
             scrollElem.scrollTo({ top: scrollElem.scrollHeight, behavior: 'smooth' });
         });
-        const param = { uuid: uuid, msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value }
+        const param = { uuid: uuid, msg: currentMessageList.value, historyChatList: messageList.value, chatId: chatId.value, model: currentLlmModel.value }
         isLoading.value = true
         api.streamChat(param, streamResponseHandler.bind(this), streamResponseHandleError.bind(this))
         /**

@@ -156,6 +156,10 @@ a {
   padding-bottom: 0.7%;
 }
 
+.model-list {
+  margin-right: auto; 
+}
+
 .add-new-chat {
   margin-right: 1%;
 }
